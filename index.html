@@ -771,9 +771,9 @@
                 return;
             }
             
-            // Validate URL format
-            if (!sheetsUrl.includes('docs.google.com') || !sheetsUrl.includes('export?format=csv')) {
-                alert('URL tidak sah. Sila gunakan CSV export URL dari Google Sheets.\n\nContoh: https://docs.google.com/spreadsheets/d/[ID]/export?format=csv');
+            // More flexible URL validation for published sheets
+            if (!sheetsUrl.includes('docs.google.com')) {
+                alert('URL tidak sah. Sila gunakan CSV export URL dari Google Sheets.');
                 return;
             }
             
@@ -781,32 +781,38 @@
             statusDiv.textContent = '⏳ Loading students from Google Sheets...';
             statusDiv.className = 'text-xs text-blue-600';
             
+            console.log('Fetching from URL:', sheetsUrl);
+            
             // Fetch data from Google Sheets
             fetch(sheetsUrl)
                 .then(response => {
+                    console.log('Response status:', response.status);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     return response.text();
                 })
                 .then(csvData => {
+                    console.log('CSV Data received:', csvData.substring(0, 200) + '...');
+                    
                     const newStudentData = parseCSVToStudentData(csvData);
+                    console.log('Parsed student data:', newStudentData);
                     
                     if (Object.keys(newStudentData).length === 0) {
-                        throw new Error('No valid student data found in the sheet');
+                        throw new Error('No valid student data found in the sheet. Please check format: Column A = Group, Column B = Student Name');
                     }
                     
                     // Backup current data
                     const backupData = JSON.stringify(studentData);
                     localStorage.setItem('studentDataBackup', backupData);
                     
-                    // Update student data
-                    Object.assign(studentData, newStudentData);
+                    // Replace student data completely (not merge)
+                    studentData = {...newStudentData};
                     
                     // Save to localStorage
                     localStorage.setItem('studentData', JSON.stringify(studentData));
                     
-                    // Update UI
+                    // Update UI immediately
                     updateAdminStats();
                     updateGroupStats();
                     updateStudentFilter();
@@ -818,14 +824,16 @@
                     statusDiv.textContent = `✅ Successfully loaded ${totalStudents} students from ${totalGroups} groups`;
                     statusDiv.className = 'text-xs text-green-600';
                     
-                    alert(`🎉 Data berjaya dimuat!\n\n📊 ${totalStudents} pelajar dari ${totalGroups} kumpulan telah dikemas kini.`);
+                    console.log(`Loaded ${totalStudents} students from ${totalGroups} groups`);
+                    
+                    alert(`🎉 Data berjaya dimuat!\n\n📊 ${totalStudents} pelajar dari ${totalGroups} kumpulan telah dikemas kini.\n\nTotal Students: ${totalStudents}\nGroups: ${Object.keys(newStudentData).join(', ')}`);
                 })
                 .catch(error => {
                     console.error('Error loading from Google Sheets:', error);
                     statusDiv.textContent = `❌ Error: ${error.message}`;
                     statusDiv.className = 'text-xs text-red-600';
                     
-                    alert(`❌ Gagal memuat data dari Google Sheets.\n\nPastikan:\n1. URL adalah CSV export link\n2. Sheet boleh diakses secara public\n3. Format data adalah betul (Column A: Group, Column B: Student Name)`);
+                    alert(`❌ Gagal memuat data dari Google Sheets.\n\nError: ${error.message}\n\nPastikan:\n1. URL adalah CSV export link yang betul\n2. Sheet boleh diakses secara public\n3. Format data: Column A = Group Code, Column B = Student Name`);
                 });
         }
         
@@ -1445,6 +1453,5 @@
             init();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'988943b7d48fce3d',t:'MTc1OTQ2MTIxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98899e9c92773c47',t:'MTc1OTQ2NDkzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-Add student attendance system
