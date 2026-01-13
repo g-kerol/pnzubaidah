@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="ms" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lavender Expense Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    .gradient-lavender {
+      background: linear-gradient(135deg, #f0e6ff 0%, #e8d5ff 25%, #dcc4f5 50%, #d0b3eb 75%, #c4a2e0 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(168, 85, 247, 0.08);
+    }
+    .lavender-shadow {
+      box-shadow: 0 10px 40px rgba(147, 51, 234, 0.1);
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+    }
+    .tab-inactive {
+      background: rgba(255, 255, 255, 0.6);
+      color: #9333ea;
+    }
+    .input-field {
+      transition: all 0.3s ease;
+    }
+    .input-field:focus {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    }
+    .scrollbar-lavender::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .scrollbar-lavender::-webkit-scrollbar-track {
+      background: #f3e8ff;
+      border-radius: 10px;
+    }
+    .scrollbar-lavender::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #a855f7 0%, #d946ef 100%);
+      border-radius: 10px;
+    }
+    .expense-row:hover {
+      background: linear-gradient(90deg, rgba(168, 85, 247, 0.05) 0%, rgba(217, 70, 239, 0.03) 100%);
+      transform: translateX(2px);
+    }
+    .spinner {
+      border: 3px solid rgba(168, 85, 247, 0.2);
+      border-top-color: #a855f7;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .animate-blink {
+      animation: blink 1s ease-in-out infinite;
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 2s ease-in-out infinite;
+    }
+    .animate-shimmer {
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    .badge-K { background: #dbeafe; color: #1e40af; }
+    .badge-Z { background: #fef3c7; color: #92400e; }
+    .badge-CZ { background: #dcfce7; color: #166534; }
+    .badge-CK { background: #f3e8ff; color: #6b21a8; }
+    .negative-amount { color: #dc2626; }
+    .positive-amount { color: #059669; }
+    .import-preview {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .success-row {
+      background: #dcfce7;
+    }
+    .error-row {
+      background: #fee2e2;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full w-full gradient-lavender overflow-auto scrollbar-lavender">
+   <div class="min-h-full p-4 md:p-6 lg:p-8"><!-- Header -->
+    <header class="mb-6 text-center fade-in">
+     <div class="inline-flex items-center justify-center gap-3 mb-3">
+      <svg class="w-12 h-12 text-purple-600" viewbox="0 0 24 24" fill="currentColor"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+      </svg>
+      <h1 id="dashboard-title" class="text-3xl md:text-4xl font-black text-purple-800 tracking-tight">LAVENDER'S EXPENSES TRACKING</h1>
+     </div>
+     <p class="text-purple-600 font-semibold">Pengurusan Perbelanjaan Harian</p>
+    </header><!-- Tabs -->
+    <div class="max-w-7xl mx-auto mb-6">
+     <div class="glass-card rounded-2xl p-2 inline-flex gap-2 lavender-shadow flex-wrap"><button id="tab-form" onclick="switchTab('form')" class="tab-active px-6 py-3 rounded-xl font-bold text-sm transition-all"> 📝 Input Perbelanjaan </button> <button id="tab-import" onclick="switchTab('import')" class="tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all"> 📥 Import Data </button> <button id="tab-filter" onclick="switchTab('filter')" class="tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all"> �� Carian &amp; Tapisan </button>
+     </div>
+    </div><!-- Form Tab -->
+    <div id="form-tab" class="max-w-4xl mx-auto fade-in">
+     <div class="glass-card rounded-3xl p-6 md:p-8 lavender-shadow">
+      <div class="flex items-center gap-3 mb-6">
+       <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+       </div>
+       <div>
+        <h2 class="text-2xl font-black text-purple-800">Tambah Perbelanjaan</h2>
+        <p class="text-sm text-purple-600">Masukkan maklumat perbelanjaan anda</p>
+       </div>
+      </div>
+      <form id="expense-form" class="space-y-5">
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-5"><!-- Tarikh Belanja -->
+        <div><label for="expense-date" class="block text-sm font-bold text-gray-700 mb-2"> Tarikh Belanja <span class="text-red-500">*</span> </label> <input type="date" id="expense-date" required class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white">
+        </div><!-- Jenis Bayaran -->
+        <div><label for="payment-type" class="block text-sm font-bold text-gray-700 mb-2"> Jenis Bayaran <span class="text-red-500">*</span> </label> <select id="payment-type" required class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Pilih Jenis Bayaran</option> <option value="CASH">���� CASH</option> <option value="CC MAYBANK">💳 CC MAYBANK</option> <option value="CC HSBC">💳 CC HSBC</option> </select>
+        </div>
+       </div><!-- Keterangan Perbelanjaan -->
+       <div><label for="description" class="block text-sm font-bold text-gray-700 mb-2"> Keterangan Perbelanjaan <span class="text-red-500">*</span> </label> <textarea id="description" rows="3" required placeholder="Contoh: Makan tengahari di restoran" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-medium resize-none"></textarea>
+       </div>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-5"><!-- Nilai (RM) -->
+        <div><label for="amount" class="block text-sm font-bold text-gray-700 mb-2"> Nilai (<span id="currency-form">RM</span>) <span class="text-red-500">*</span> </label> <input type="number" id="amount" step="0.01" required placeholder="0.00 (negatif dibenarkan)" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-bold">
+         <p class="text-xs text-gray-500 mt-1">💡 Nilai negatif untuk refund/pulangan</p>
+        </div><!-- Code Belanja -->
+        <div><label for="expense-code" class="block text-sm font-bold text-gray-700 mb-2"> Code Belanja <span class="text-red-500">*</span> </label> <select id="expense-code" required class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Pilih Code</option> <option value="K">K</option> <option value="Z">Z</option> <option value="CZ">CZ</option> <option value="CK">CK</option> </select>
+        </div>
+       </div><!-- Submit & Reset Buttons -->
+       <div class="flex gap-3"><button type="button" onclick="resetForm()" class="px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+         </svg> Reset </button> <button type="submit" id="submit-btn" class="flex-1 py-4 bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 text-white rounded-xl font-black text-lg hover:from-purple-600 hover:via-purple-700 hover:to-pink-600 transition-all shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+         </svg><span id="submit-text">Simpan ke Canva Sheet</span> </button>
+       </div>
+      </form>
+     </div>
+    </div><!-- Import Tab -->
+    <div id="import-tab" class="max-w-6xl mx-auto hidden">
+     <div class="glass-card rounded-3xl p-6 md:p-8 lavender-shadow fade-in">
+      <div class="flex items-center gap-3 mb-6">
+       <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+       </div>
+       <div>
+        <h2 class="text-2xl font-black text-purple-800">Import Data dari Sheet Lama</h2>
+        <p class="text-sm text-purple-600">Pindah data dari Canva Sheet Version 6 ke Sheet baharu</p>
+       </div>
+      </div><!-- Instructions -->
+      <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-5 mb-6">
+       <h3 class="font-black text-blue-900 mb-3 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> CARA IMPORT DATA</h3>
+       <ol class="space-y-2 text-sm text-blue-800 font-semibold">
+        <li class="flex gap-2"><span class="font-black">1.</span> <span>Buka <strong>Canva Sheet Version 6</strong> anda</span></li>
+        <li class="flex gap-2"><span class="font-black">2.</span> <span>Pilih <strong>SEMUA data</strong> (dari baris 2 hingga baris terakhir, tanpa header)</span></li>
+        <li class="flex gap-2"><span class="font-black">3.</span> <span><strong>Copy</strong> data yang dipilih (Ctrl+C atau Cmd+C)</span></li>
+        <li class="flex gap-2"><span class="font-black">4.</span> <span><strong>Paste</strong> dalam kotak di bawah (Ctrl+V atau Cmd+V)</span></li>
+        <li class="flex gap-2"><span class="font-black">5.</span> <span>Klik <strong>"Preview Data"</strong> untuk semak</span></li>
+        <li class="flex gap-2"><span class="font-black">6.</span> <span>Klik <strong>"Import ke Sheet Baharu"</strong> untuk simpan</span></li>
+       </ol>
+      </div><!-- Expected Format -->
+      <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-5 mb-6">
+       <h3 class="font-black text-purple-900 mb-3">📋 FORMAT YANG DIJANGKA</h3>
+       <p class="text-sm text-purple-800 font-semibold mb-2">Setiap baris perlu ada 5 kolum (dipisah dengan TAB):</p><code class="block bg-white p-3 rounded-lg text-xs font-mono text-gray-700"> 12/1/2025&nbsp;&nbsp;&nbsp;&nbsp;CASH&nbsp;&nbsp;&nbsp;&nbsp;Makan tengahari&nbsp;&nbsp;&nbsp;&nbsp;25.50&nbsp;&nbsp;&nbsp;&nbsp;K </code>
+       <p class="text-xs text-purple-600 mt-2"><strong>Kolum:</strong> Tarikh | Jenis Bayaran | Keterangan | Nilai | Code</p>
+      </div><!-- Paste Area -->
+      <div class="mb-6"><label for="import-data" class="block text-sm font-bold text-gray-700 mb-2"> Paste Data dari Sheet Lama <span class="text-red-500">*</span> </label> <textarea id="import-data" rows="10" placeholder="Paste data anda di sini...
+
+Contoh:
+12/1/2025	CASH	Makan tengahari	25.50	K
+13/1/2025	CC MAYBANK	Shopping	150.00	Z
+14/1/2025	CC HSBC	Groceries	89.30	CK" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-mono text-sm resize-none scrollbar-lavender"></textarea>
+      </div><!-- Action Buttons -->
+      <div class="flex gap-3 mb-6"><button onclick="previewImportData()" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-bold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg> Preview Data </button> <button onclick="clearImportData()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg> Clear </button>
+      </div><!-- Preview Section -->
+      <div id="preview-section" class="hidden">
+       <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5 mb-4">
+        <h3 class="font-black text-green-900 mb-2 flex items-center gap-2">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg> PREVIEW DATA</h3>
+        <p class="text-sm text-green-800 font-semibold"><span id="preview-count">0</span> rekod berjaya dikenalpasti</p>
+       </div>
+       <div class="glass-card rounded-2xl overflow-hidden mb-4">
+        <div class="import-preview scrollbar-lavender">
+         <table class="w-full">
+          <thead class="bg-gradient-to-r from-purple-50 to-pink-50 sticky top-0">
+           <tr>
+            <th class="px-4 py-3 text-left text-xs font-black text-purple-700 uppercase">No</th>
+            <th class="px-4 py-3 text-left text-xs font-black text-purple-700 uppercase">Tarikh</th>
+            <th class="px-4 py-3 text-left text-xs font-black text-purple-700 uppercase">Bayaran</th>
+            <th class="px-4 py-3 text-left text-xs font-black text-purple-700 uppercase">Keterangan</th>
+            <th class="px-4 py-3 text-right text-xs font-black text-purple-700 uppercase">Nilai</th>
+            <th class="px-4 py-3 text-left text-xs font-black text-purple-700 uppercase">Code</th>
+            <th class="px-4 py-3 text-center text-xs font-black text-purple-700 uppercase">Status</th>
+           </tr>
+          </thead>
+          <tbody id="preview-table" class="divide-y divide-purple-50">
+          </tbody>
+         </table>
+        </div>
+       </div><button id="import-btn" onclick="importDataToSheet()" class="w-full py-4 bg-gradient-to-r from-green-500 via-emerald-600 to-teal-500 text-white rounded-xl font-black text-lg hover:from-green-600 hover:via-emerald-700 hover:to-teal-600 transition-all shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg><span id="import-btn-text">Import ke Sheet Baharu</span> </button>
+      </div>
+     </div>
+    </div><!-- Filter Tab -->
+    <div id="filter-tab" class="max-w-7xl mx-auto hidden"><!-- Code Breakdown Cards -->
+     <div id="code-breakdown-section" class="glass-card rounded-3xl p-5 lavender-shadow mb-5 fade-in hidden">
+      <h3 class="text-lg font-black text-purple-800 mb-4 flex items-center gap-2">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+       </svg> KIRAAN MENGIKUT CODE</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+       <div class="bg-blue-50 rounded-lg p-3">
+        <p class="text-xs font-bold text-blue-600 mb-0.5">CODE K</p>
+        <p id="code-k-total" class="text-lg font-black text-blue-700">RM 0.00</p>
+        <p id="code-k-count" class="text-xs text-blue-500 mt-0.5">0 rekod</p>
+       </div>
+       <div class="bg-yellow-50 rounded-lg p-3">
+        <p class="text-xs font-bold text-yellow-700 mb-0.5">CODE Z</p>
+        <p id="code-z-total" class="text-lg font-black text-yellow-800">RM 0.00</p>
+        <p id="code-z-count" class="text-xs text-yellow-600 mt-0.5">0 rekod</p>
+       </div>
+       <div class="bg-green-50 rounded-lg p-3">
+        <p class="text-xs font-bold text-green-600 mb-0.5">CODE CZ</p>
+        <p id="code-cz-total" class="text-lg font-black text-green-700">RM 0.00</p>
+        <p id="code-cz-count" class="text-xs text-green-500 mt-0.5">0 rekod</p>
+       </div>
+       <div class="bg-purple-50 rounded-lg p-3">
+        <p class="text-xs font-bold text-purple-600 mb-0.5">CODE CK</p>
+        <p id="code-ck-total" class="text-lg font-black text-purple-700">RM 0.00</p>
+        <p id="code-ck-count" class="text-xs text-purple-500 mt-0.5">0 rekod</p>
+       </div>
+      </div>
+     </div><!-- Custom Calculations -->
+     <div id="calculations-section" class="glass-card rounded-3xl p-5 lavender-shadow mb-5 fade-in hidden" style="animation-delay: 0.05s">
+      <h3 class="text-lg font-black text-purple-800 mb-4 flex items-center gap-2">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+       </svg> KIRAAN PERBELANJAAN</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
+        <div class="flex items-center gap-2 mb-2">
+         <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"><span class="text-white font-black text-sm">K</span>
+         </div>
+         <p class="font-black text-blue-900 text-xs">Khairul's Spending</p>
+        </div>
+        <p id="khairul-spending" class="text-xl font-black text-blue-700">RM 0.00</p>
+        <p class="text-xs text-blue-600 mt-1 font-semibold">= (0.5 × (CK + CZ)) + K</p>
+       </div>
+       <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border-2 border-pink-200">
+        <div class="flex items-center gap-2 mb-2">
+         <div class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center"><span class="text-white font-black text-sm">Z</span>
+         </div>
+         <p class="font-black text-pink-900 text-xs">Zubaidah's Spending</p>
+        </div>
+        <p id="zubaidah-spending" class="text-xl font-black text-pink-700">RM 0.00</p>
+        <p class="text-xs text-pink-600 mt-1 font-semibold">= (0.5 × (CK + CZ)) + Z</p>
+       </div>
+       <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+        <div class="flex items-center gap-2 mb-2">
+         <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+         </div>
+         <p class="font-black text-green-900 text-xs">Terima dari Zubaidah</p>
+        </div>
+        <p id="receive-from-zubaidah" class="text-xl font-black text-green-700">RM 0.00</p>
+        <p class="text-xs text-green-600 mt-1 font-semibold">= (0.5 × CK) + Z - Z(CASH)</p>
+       </div>
+       <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
+        <div class="flex items-center gap-2 mb-2">
+         <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+         </div>
+         <p class="font-black text-orange-900 text-xs">Terima dari Khairul</p>
+        </div>
+        <p id="receive-from-khairul" class="text-xl font-black text-orange-700">RM 0.00</p>
+        <p class="text-xs text-orange-600 mt-1 font-semibold">= 0.5 × CZ</p>
+       </div>
+      </div><!-- Settlement Card -->
+      <div id="settlement-card" class="relative overflow-hidden rounded-2xl p-6 text-center border-4">
+       <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer"></div>
+       </div>
+       <div class="relative z-10">
+        <p class="text-xs font-bold text-gray-600 mb-1">💰 PENYELESAIAN PEMBAYARAN</p>
+        <p id="settlement-message" class="text-3xl font-black mb-2 animate-pulse-slow"></p>
+        <p id="settlement-amount" class="text-4xl font-black mb-1"></p>
+        <p class="text-xs text-gray-500 font-semibold mt-2">Terima dari Khairul - Terima dari Zubaidah</p>
+       </div>
+      </div>
+     </div><!-- Filters -->
+     <div class="glass-card rounded-3xl p-6 lavender-shadow mb-6 fade-in" style="animation-delay: 0.2s">
+      <h3 class="text-xl font-black text-purple-800 mb-5 flex items-center gap-2">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+       </svg> TAPIS &amp; CARIAN DATA</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-4"><!-- Date Filter Type -->
+       <div><label class="block text-sm font-bold text-gray-700 mb-2">📅 Jenis Tapisan</label> <select id="date-filter-type" onchange="toggleDateFilter()" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Semua Tarikh</option> <option value="month">Pilih Bulan</option> <option value="range">Julat Tarikh</option> </select>
+       </div><!-- Month Filter -->
+       <div id="month-filter-wrapper" class="hidden"><label class="block text-sm font-bold text-gray-700 mb-2">🗓️ Pilih Bulan</label> <input type="month" id="month-filter" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white">
+       </div><!-- Date Range Filter (hidden by default) -->
+       <div id="date-from-wrapper" class="hidden"><label class="block text-sm font-bold text-gray-700 mb-2">📆 Dari Tarikh</label> <input type="date" id="date-from-filter" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white">
+       </div>
+       <div id="date-to-wrapper" class="hidden"><label class="block text-sm font-bold text-gray-700 mb-2">📅 Hingga Tarikh</label> <input type="date" id="date-to-filter" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white">
+       </div><!-- Payment Type Filter -->
+       <div><label class="block text-sm font-bold text-gray-700 mb-2">💳 Jenis Bayaran</label> <select id="payment-filter" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Semua</option> <option value="CASH">CASH</option> <option value="CC MAYBANK">CC MAYBANK</option> <option value="CC HSBC">CC HSBC</option> </select>
+       </div><!-- Code Filter -->
+       <div><label class="block text-sm font-bold text-gray-700 mb-2">🏷️ Code Belanja</label> <select id="code-filter" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Semua</option> <option value="K">K</option> <option value="Z">Z</option> <option value="CZ">CZ</option> <option value="CK">CK</option> </select>
+       </div><!-- Search -->
+       <div><label class="block text-sm font-bold text-gray-700 mb-2">🔍 Carian</label> <input type="text" id="search-filter" placeholder="Cari keterangan..." class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-medium">
+       </div>
+      </div>
+      <div class="flex gap-3"><button onclick="applyFilters()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg> Tapis Data </button> <button onclick="resetFilters()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg> Reset </button>
+      </div>
+     </div><!-- Data Table -->
+     <div id="data-table-section" class="glass-card rounded-3xl lavender-shadow overflow-hidden fade-in hidden" style="animation-delay: 0.25s">
+      <div class="p-5 border-b border-purple-100 flex items-center justify-between">
+       <h3 class="text-xl font-black text-purple-800 flex items-center gap-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg> SENARAI PERBELANJAAN</h3><span id="showing-count" class="text-sm font-semibold text-gray-600"></span>
+      </div>
+      <div class="overflow-x-auto scrollbar-lavender">
+       <table class="w-full">
+        <thead class="bg-gradient-to-r from-purple-50 to-pink-50">
+         <tr>
+          <th class="px-5 py-4 text-left text-xs font-black text-purple-700 uppercase tracking-wider">Tarikh</th>
+          <th class="px-5 py-4 text-left text-xs font-black text-purple-700 uppercase tracking-wider">Keterangan</th>
+          <th class="px-5 py-4 text-left text-xs font-black text-purple-700 uppercase tracking-wider">Bayaran</th>
+          <th class="px-5 py-4 text-left text-xs font-black text-purple-700 uppercase tracking-wider">Code</th>
+          <th class="px-5 py-4 text-right text-xs font-black text-purple-700 uppercase tracking-wider">Nilai</th>
+          <th class="px-5 py-4 text-center text-xs font-black text-purple-700 uppercase tracking-wider">Aksi</th>
+         </tr>
+        </thead>
+        <tbody id="expense-table" class="divide-y divide-purple-50"><!-- Rows will be rendered here -->
+        </tbody>
+       </table>
+      </div>
+      <div id="empty-state" class="hidden p-12 text-center">
+       <svg class="w-20 h-20 mx-auto text-purple-200 mb-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+       </svg>
+       <p class="text-gray-500 font-bold text-lg mb-2">Tiada data ditemui</p>
+       <p class="text-gray-400">Cuba tukar kriteria tapisan anda</p>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    let allExpenses = [];
+    let filteredExpenses = [];
+    let currentTab = 'form';
+    let isInitialized = false;
+    let previewedData = [];
+
+    const defaultConfig = {
+      dashboard_title: "LAVENDER'S EXPENSES TRACKING",
+      currency_symbol: 'RM'
+    };
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const formTab = document.getElementById('form-tab');
+      const importTab = document.getElementById('import-tab');
+      const filterTab = document.getElementById('filter-tab');
+      const tabFormBtn = document.getElementById('tab-form');
+      const tabImportBtn = document.getElementById('tab-import');
+      const tabFilterBtn = document.getElementById('tab-filter');
+
+      formTab.classList.add('hidden');
+      importTab.classList.add('hidden');
+      filterTab.classList.add('hidden');
+
+      tabFormBtn.className = 'tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all';
+      tabImportBtn.className = 'tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all';
+      tabFilterBtn.className = 'tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all';
+
+      if (tab === 'form') {
+        formTab.classList.remove('hidden');
+        tabFormBtn.className = 'tab-active px-6 py-3 rounded-xl font-bold text-sm transition-all';
+      } else if (tab === 'import') {
+        importTab.classList.remove('hidden');
+        tabImportBtn.className = 'tab-active px-6 py-3 rounded-xl font-bold text-sm transition-all';
+      } else {
+        filterTab.classList.remove('hidden');
+        tabFilterBtn.className = 'tab-active px-6 py-3 rounded-xl font-bold text-sm transition-all';
+        applyFilters();
+      }
+    }
+
+    window.switchTab = switchTab;
+
+    function showToast(message, type = 'success') {
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) existingToast.remove();
+
+      const toast = document.createElement('div');
+      toast.className = `toast glass-card px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 ${type === 'success' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}`;
+      
+      const icon = type === 'success' 
+        ? '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+        : '<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+      
+      toast.innerHTML = `${icon}<span class="font-bold text-gray-800">${message}</span>`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function formatCurrency(amount, symbol = 'RM') {
+      const absAmount = Math.abs(amount);
+      const formatted = `${symbol} ${absAmount.toFixed(2)}`;
+      return amount < 0 ? `- ${formatted}` : formatted;
+    }
+
+    function parseDate(dateStr) {
+      if (!dateStr) return null;
+      
+      dateStr = String(dateStr).trim();
+      
+      let date = new Date(dateStr);
+      
+      if (isNaN(date.getTime()) && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const month = parseInt(parts[0]) - 1;
+          const day = parseInt(parts[1]);
+          const year = parseInt(parts[2]);
+          date = new Date(year, month, day);
+        }
+      }
+      
+      return isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatDate(dateStr) {
+      const date = parseDate(dateStr);
+      if (!date) return dateStr;
+      return date.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    
+    function normalizeDate(dateStr) {
+      const date = parseDate(dateStr);
+      if (!date) return dateStr;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function updateStatistics(config) {
+      const symbol = config.currency_symbol || defaultConfig.currency_symbol;
+      const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+      const count = filteredExpenses.length;
+      const avg = count > 0 ? total / count : 0;
+      const amounts = filteredExpenses.map(e => e.amount);
+      const max = amounts.length > 0 ? Math.max(...amounts) : 0;
+
+      document.getElementById('stat-total').textContent = formatCurrency(total, symbol);
+      document.getElementById('stat-count').textContent = count;
+      document.getElementById('stat-avg').textContent = formatCurrency(avg, symbol);
+      document.getElementById('stat-max').textContent = formatCurrency(max, symbol);
+
+      const codeK = filteredExpenses.filter(e => e.expense_code === 'K');
+      const codeZ = filteredExpenses.filter(e => e.expense_code === 'Z');
+      const codeCZ = filteredExpenses.filter(e => e.expense_code === 'CZ');
+      const codeCK = filteredExpenses.filter(e => e.expense_code === 'CK');
+
+      const totalK = codeK.reduce((sum, e) => sum + e.amount, 0);
+      const totalZ = codeZ.reduce((sum, e) => sum + e.amount, 0);
+      const totalCZ = codeCZ.reduce((sum, e) => sum + e.amount, 0);
+      const totalCK = codeCK.reduce((sum, e) => sum + e.amount, 0);
+
+      document.getElementById('code-k-total').textContent = formatCurrency(totalK, symbol);
+      document.getElementById('code-k-count').textContent = `${codeK.length} rekod`;
+      
+      document.getElementById('code-z-total').textContent = formatCurrency(totalZ, symbol);
+      document.getElementById('code-z-count').textContent = `${codeZ.length} rekod`;
+      
+      document.getElementById('code-cz-total').textContent = formatCurrency(totalCZ, symbol);
+      document.getElementById('code-cz-count').textContent = `${codeCZ.length} rekod`;
+      
+      document.getElementById('code-ck-total').textContent = formatCurrency(totalCK, symbol);
+      document.getElementById('code-ck-count').textContent = `${codeCK.length} rekod`;
+
+      const khairulSpending = (0.5 * (totalCK + totalCZ)) + totalK;
+      const zubaidahSpending = (0.5 * (totalCK + totalCZ)) + totalZ;
+      const totalZCash = codeZ.filter(e => e.payment_type === 'CASH').reduce((sum, e) => sum + e.amount, 0);
+      const receiveFromZubaidah = (0.5 * totalCK) + totalZ - totalZCash;
+      const receiveFromKhairul = 0.5 * totalCZ;
+
+      document.getElementById('khairul-spending').textContent = formatCurrency(khairulSpending, symbol);
+      document.getElementById('zubaidah-spending').textContent = formatCurrency(zubaidahSpending, symbol);
+      document.getElementById('receive-from-zubaidah').textContent = formatCurrency(receiveFromZubaidah, symbol);
+      document.getElementById('receive-from-khairul').textContent = formatCurrency(receiveFromKhairul, symbol);
+
+      const settlement = receiveFromKhairul - receiveFromZubaidah;
+      const settlementCard = document.getElementById('settlement-card');
+      const settlementMessage = document.getElementById('settlement-message');
+      const settlementAmount = document.getElementById('settlement-amount');
+
+      if (settlement < 0) {
+        const absSettlement = Math.abs(settlement);
+        settlementCard.className = 'relative overflow-hidden rounded-3xl p-8 text-center border-4 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100';
+        settlementMessage.textContent = '🔵 BAYAR PADA KHAIRUL';
+        settlementMessage.className = 'text-4xl font-black mb-3 animate-blink text-blue-700';
+        settlementAmount.textContent = formatCurrency(absSettlement, symbol);
+        settlementAmount.className = 'text-5xl font-black mb-2 text-blue-800';
+      } else if (settlement > 0) {
+        settlementCard.className = 'relative overflow-hidden rounded-3xl p-8 text-center border-4 border-pink-400 bg-gradient-to-br from-pink-50 to-pink-100';
+        settlementMessage.textContent = '🌸 BAYAR PADA ZUBAIDAH';
+        settlementMessage.className = 'text-4xl font-black mb-3 animate-blink text-pink-700';
+        settlementAmount.textContent = formatCurrency(settlement, symbol);
+        settlementAmount.className = 'text-5xl font-black mb-2 text-pink-800';
+      } else {
+        settlementCard.className = 'relative overflow-hidden rounded-3xl p-8 text-center border-4 border-green-400 bg-gradient-to-br from-green-50 to-green-100';
+        settlementMessage.textContent = '✅ SEIMBANG';
+        settlementMessage.className = 'text-4xl font-black mb-3 text-green-700';
+        settlementAmount.textContent = formatCurrency(0, symbol);
+        settlementAmount.className = 'text-5xl font-black mb-2 text-green-800';
+      }
+    }
+
+    function renderTable(config) {
+      const tbody = document.getElementById('expense-table');
+      const emptyState = document.getElementById('empty-state');
+      const showingCount = document.getElementById('showing-count');
+      const symbol = config.currency_symbol || defaultConfig.currency_symbol;
+
+      showingCount.textContent = `Menunjukkan ${filteredExpenses.length} daripada ${allExpenses.length} rekod`;
+
+      if (filteredExpenses.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        updateStatistics(config);
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      const sortedExpenses = [...filteredExpenses].sort((a, b) => {
+        const dateA = parseDate(a.expense_date);
+        const dateB = parseDate(b.expense_date);
+        return dateB - dateA;
+      });
+
+      tbody.innerHTML = sortedExpenses.map((expense) => {
+        const amountClass = expense.amount < 0 ? 'negative-amount' : 'positive-amount';
+        return `
+          <tr class="expense-row transition-all">
+            <td class="px-5 py-4 text-sm font-semibold text-gray-700 whitespace-nowrap">${formatDate(expense.expense_date)}</td>
+            <td class="px-5 py-4 text-sm text-gray-800 font-medium max-w-xs truncate">${expense.description}</td>
+            <td class="px-5 py-4 text-sm font-semibold text-gray-700">${expense.payment_type}</td>
+            <td class="px-5 py-4">
+              <span class="badge-${expense.expense_code} px-3 py-1 rounded-full text-xs font-black">
+                ${expense.expense_code}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-sm font-black ${amountClass} text-right whitespace-nowrap">${formatCurrency(expense.amount, symbol)}</td>
+            <td class="px-5 py-4 text-center">
+              <button 
+                onclick="deleteExpense('${expense.__backendId}')" 
+                class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-all"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Padam
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      updateStatistics(config);
+    }
+
+    function resetForm() {
+      document.getElementById('expense-form').reset();
+      document.getElementById('expense-date').valueAsDate = new Date();
+      showToast('��� Form telah direset', 'success');
+    }
+
+    window.resetForm = resetForm;
+
+    function toggleDateFilter() {
+      const filterType = document.getElementById('date-filter-type').value;
+      const monthWrapper = document.getElementById('month-filter-wrapper');
+      const dateFromWrapper = document.getElementById('date-from-wrapper');
+      const dateToWrapper = document.getElementById('date-to-wrapper');
+
+      monthWrapper.classList.add('hidden');
+      dateFromWrapper.classList.add('hidden');
+      dateToWrapper.classList.add('hidden');
+
+      document.getElementById('month-filter').value = '';
+      document.getElementById('date-from-filter').value = '';
+      document.getElementById('date-to-filter').value = '';
+
+      if (filterType === 'month') {
+        monthWrapper.classList.remove('hidden');
+      } else if (filterType === 'range') {
+        dateFromWrapper.classList.remove('hidden');
+        dateToWrapper.classList.remove('hidden');
+      }
+    }
+
+    window.toggleDateFilter = toggleDateFilter;
+
+    function applyFilters() {
+      const filterType = document.getElementById('date-filter-type').value;
+      const month = document.getElementById('month-filter').value;
+      const dateFrom = document.getElementById('date-from-filter').value;
+      const dateTo = document.getElementById('date-to-filter').value;
+      const payment = document.getElementById('payment-filter').value;
+      const code = document.getElementById('code-filter').value;
+      const search = document.getElementById('search-filter').value.toLowerCase();
+
+      const hasActiveFilter = filterType || payment || code || search;
+
+      filteredExpenses = allExpenses.filter(expense => {
+        let matchesDate = true;
+        
+        if (filterType === 'month' && month) {
+          const expenseDate = normalizeDate(expense.expense_date);
+          matchesDate = expenseDate.startsWith(month);
+        } else if (filterType === 'range') {
+          const expenseDate = normalizeDate(expense.expense_date);
+          
+          if (dateFrom && dateTo) {
+            matchesDate = expenseDate >= dateFrom && expenseDate <= dateTo;
+          } else if (dateFrom) {
+            matchesDate = expenseDate >= dateFrom;
+          } else if (dateTo) {
+            matchesDate = expenseDate <= dateTo;
+          }
+        }
+
+        const matchesPayment = !payment || expense.payment_type === payment;
+        const matchesCode = !code || expense.expense_code === code;
+        const matchesSearch = !search || expense.description.toLowerCase().includes(search);
+
+        return matchesDate && matchesPayment && matchesCode && matchesSearch;
+      });
+
+      const config = window.elementSdk?.config || defaultConfig;
+
+      if (hasActiveFilter) {
+        document.getElementById('code-breakdown-section').classList.remove('hidden');
+        document.getElementById('calculations-section').classList.remove('hidden');
+        document.getElementById('data-table-section').classList.remove('hidden');
+        renderTable(config);
+      } else {
+        document.getElementById('code-breakdown-section').classList.add('hidden');
+        document.getElementById('calculations-section').classList.add('hidden');
+        document.getElementById('data-table-section').classList.add('hidden');
+      }
+    }
+
+    window.applyFilters = applyFilters;
+
+    function resetFilters() {
+      document.getElementById('date-filter-type').value = '';
+      document.getElementById('month-filter').value = '';
+      document.getElementById('date-from-filter').value = '';
+      document.getElementById('date-to-filter').value = '';
+      document.getElementById('payment-filter').value = '';
+      document.getElementById('code-filter').value = '';
+      document.getElementById('search-filter').value = '';
+      
+      document.getElementById('month-filter-wrapper').classList.add('hidden');
+      document.getElementById('date-from-wrapper').classList.add('hidden');
+      document.getElementById('date-to-wrapper').classList.add('hidden');
+      
+      filteredExpenses = [...allExpenses];
+      
+      document.getElementById('code-breakdown-section').classList.add('hidden');
+      document.getElementById('calculations-section').classList.add('hidden');
+      document.getElementById('data-table-section').classList.add('hidden');
+    }
+
+    window.resetFilters = resetFilters;
+
+    async function deleteExpense(backendId) {
+      const expense = allExpenses.find(e => e.__backendId === backendId);
+      if (!expense) return;
+
+      const deleteBtn = event.target.closest('button');
+      const originalContent = deleteBtn.innerHTML;
+      
+      deleteBtn.disabled = true;
+      deleteBtn.innerHTML = '<div class="spinner"></div>';
+
+      const result = await window.dataSdk.delete(expense);
+
+      if (result.isOk) {
+        showToast('✅ Perbelanjaan berjaya dipadam!', 'success');
+      } else {
+        showToast('��� Gagal memadam. Sila cuba lagi.', 'error');
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = originalContent;
+      }
+    }
+
+    window.deleteExpense = deleteExpense;
+
+    // Import Functions
+    function previewImportData() {
+      const rawData = document.getElementById('import-data').value.trim();
+      
+      if (!rawData) {
+        showToast('⚠️ Sila paste data terlebih dahulu!', 'error');
+        return;
+      }
+
+      const lines = rawData.split('\n').filter(line => line.trim());
+      previewedData = [];
+      
+      const previewTable = document.getElementById('preview-table');
+      previewTable.innerHTML = '';
+
+      lines.forEach((line, index) => {
+        const columns = line.split('\t');
+        
+        if (columns.length !== 5) {
+          previewTable.innerHTML += `
+            <tr class="error-row">
+              <td class="px-4 py-3 text-sm font-semibold">${index + 1}</td>
+              <td colspan="6" class="px-4 py-3 text-sm text-red-700 font-bold">
+                ❌ ERROR: Baris ini tidak mempunyai 5 kolum (dapat ${columns.length} kolum)
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        const [dateStr, paymentType, description, amountStr, code] = columns.map(c => c.trim());
+        
+        const date = parseDate(dateStr);
+        const amount = parseFloat(amountStr);
+        const validPayments = ['CASH', 'CC MAYBANK', 'CC HSBC'];
+        const validCodes = ['K', 'Z', 'CZ', 'CK'];
+
+        let errors = [];
+        if (!date) errors.push('Tarikh tidak sah');
+        if (!validPayments.includes(paymentType)) errors.push('Jenis bayaran tidak sah');
+        if (!description) errors.push('Keterangan kosong');
+        if (isNaN(amount)) errors.push('Nilai bukan nombor');
+        if (!validCodes.includes(code)) errors.push('Code tidak sah');
+
+        if (errors.length > 0) {
+          previewTable.innerHTML += `
+            <tr class="error-row">
+              <td class="px-4 py-3 text-sm font-semibold">${index + 1}</td>
+              <td class="px-4 py-3 text-sm">${dateStr}</td>
+              <td class="px-4 py-3 text-sm">${paymentType}</td>
+              <td class="px-4 py-3 text-sm">${description}</td>
+              <td class="px-4 py-3 text-sm text-right">${amountStr}</td>
+              <td class="px-4 py-3 text-sm">${code}</td>
+              <td class="px-4 py-3 text-xs text-red-700 font-bold">❌ ${errors.join(', ')}</td>
+            </tr>
+          `;
+          return;
+        }
+
+        // Valid row
+        const normalizedDate = normalizeDate(dateStr);
+        const expenseData = {
+          expense_date: normalizedDate,
+          payment_type: paymentType,
+          description: description,
+          amount: amount,
+          expense_code: code
+        };
+
+        previewedData.push(expenseData);
+
+        const amountClass = amount < 0 ? 'negative-amount' : 'positive-amount';
+        previewTable.innerHTML += `
+          <tr class="success-row">
+            <td class="px-4 py-3 text-sm font-semibold">${index + 1}</td>
+            <td class="px-4 py-3 text-sm font-semibold">${formatDate(normalizedDate)}</td>
+            <td class="px-4 py-3 text-sm font-semibold">${paymentType}</td>
+            <td class="px-4 py-3 text-sm">${description}</td>
+            <td class="px-4 py-3 text-sm font-black ${amountClass} text-right">${formatCurrency(amount)}</td>
+            <td class="px-4 py-3"><span class="badge-${code} px-3 py-1 rounded-full text-xs font-black">${code}</span></td>
+            <td class="px-4 py-3 text-center text-green-700 font-bold">✅</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('preview-count').textContent = previewedData.length;
+      document.getElementById('preview-section').classList.remove('hidden');
+
+      if (previewedData.length === 0) {
+        showToast('⚠️ Tiada data yang sah untuk diimport!', 'error');
+      } else {
+        showToast(`✅ ${previewedData.length} rekod berjaya dikenalpasti!`, 'success');
+      }
+    }
+
+    window.previewImportData = previewImportData;
+
+    function clearImportData() {
+      document.getElementById('import-data').value = '';
+      document.getElementById('preview-section').classList.add('hidden');
+      previewedData = [];
+      showToast('🗑️ Data telah dibersihkan', 'success');
+    }
+
+    window.clearImportData = clearImportData;
+
+    async function importDataToSheet() {
+      if (previewedData.length === 0) {
+        showToast('⚠️ Tiada data untuk diimport! Klik "Preview Data" terlebih dahulu.', 'error');
+        return;
+      }
+
+      const remainingSlots = 999 - allExpenses.length;
+      if (previewedData.length > remainingSlots) {
+        showToast(`⚠️ Hanya boleh import ${remainingSlots} rekod lagi (had maksimum 999)`, 'error');
+        return;
+      }
+
+      const importBtn = document.getElementById('import-btn');
+      const importBtnText = document.getElementById('import-btn-text');
+      const originalText = importBtnText.textContent;
+
+      importBtn.disabled = true;
+      importBtn.innerHTML = '<div class="spinner"></div><span>Mengimport...</span>';
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < previewedData.length; i++) {
+        const expense = previewedData[i];
+        importBtnText.textContent = `Mengimport ${i + 1}/${previewedData.length}...`;
+        
+        const result = await window.dataSdk.create(expense);
+        
+        if (result.isOk) {
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      }
+
+      importBtn.disabled = false;
+      importBtn.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+        <span>${originalText}</span>
+      `;
+
+      if (errorCount === 0) {
+        showToast(`🎉 Berjaya! ${successCount} rekod telah diimport ke Sheet baharu!`, 'success');
+        clearImportData();
+        switchTab('filter');
+      } else {
+        showToast(`⚠️ Import selesai: ${successCount} berjaya, ${errorCount} gagal`, 'error');
+      }
+    }
+
+    window.importDataToSheet = importDataToSheet;
+
+    // Data SDK Handler
+    const dataHandler = {
+      onDataChanged(data) {
+        console.log('Data received:', data.length, 'records');
+        
+        allExpenses = data.filter(expense => {
+          return expense.expense_date && 
+                 expense.payment_type && 
+                 expense.description && 
+                 expense.amount !== undefined && 
+                 expense.expense_code;
+        }).map(expense => {
+          return {
+            ...expense,
+            amount: parseFloat(expense.amount) || 0,
+            expense_date: String(expense.expense_date || ''),
+            payment_type: String(expense.payment_type || ''),
+            description: String(expense.description || ''),
+            expense_code: String(expense.expense_code || '')
+          };
+        });
+        
+        filteredExpenses = [...allExpenses];
+        
+        console.log('Processed expenses:', allExpenses.length);
+      }
+    };
+
+    // Form Submit Handler
+    document.getElementById('expense-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (allExpenses.length >= 999) {
+        showToast('⚠️ Had maksimum 999 rekod telah dicapai!', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      const submitText = document.getElementById('submit-text');
+      const originalText = submitText.textContent;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<div class="spinner"></div><span>Menyimpan...</span>';
+
+      const formData = {
+        expense_date: document.getElementById('expense-date').value,
+        payment_type: document.getElementById('payment-type').value,
+        description: document.getElementById('description').value.trim(),
+        amount: parseFloat(document.getElementById('amount').value),
+        expense_code: document.getElementById('expense-code').value
+      };
+
+      const result = await window.dataSdk.create(formData);
+
+      if (result.isOk) {
+        showToast('✅ Perbelanjaan berjaya disimpan ke Canva Sheet!', 'success');
+        document.getElementById('expense-form').reset();
+        document.getElementById('expense-date').valueAsDate = new Date();
+      } else {
+        showToast('❌ Gagal menyimpan. Sila cuba lagi.', 'error');
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span>${originalText}</span>
+      `;
+    });
+
+    // Filter event listeners
+    document.getElementById('search-filter').addEventListener('input', applyFilters);
+    document.getElementById('month-filter').addEventListener('change', applyFilters);
+    document.getElementById('date-from-filter').addEventListener('change', applyFilters);
+    document.getElementById('date-to-filter').addEventListener('change', applyFilters);
+    document.getElementById('payment-filter').addEventListener('change', applyFilters);
+    document.getElementById('code-filter').addEventListener('change', applyFilters);
+
+    // Set default date to today
+    document.getElementById('expense-date').valueAsDate = new Date();
+
+    // Initialize Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          document.getElementById('dashboard-title').textContent = config.dashboard_title || defaultConfig.dashboard_title;
+          document.getElementById('currency-form').textContent = config.currency_symbol || defaultConfig.currency_symbol;
+          
+          if (isInitialized && currentTab === 'filter') {
+            renderTable(config);
+          }
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['dashboard_title', config.dashboard_title || defaultConfig.dashboard_title],
+          ['currency_symbol', config.currency_symbol || defaultConfig.currency_symbol]
+        ])
+      });
+    }
+
+    // Initialize Data SDK
+    (async () => {
+      const initResult = await window.dataSdk.init(dataHandler);
+      
+      if (initResult.isOk) {
+        isInitialized = true;
+        console.log('✅ Data SDK initialized successfully');
+      } else {
+        showToast('❌ Gagal memulakan sambungan data', 'error');
+        console.error('Failed to initialize Data SDK:', initResult.error);
+      }
+    })();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bd35a1f7082dce2',t:'MTc2ODI5MTE0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
