@@ -145,7 +145,7 @@
      <p class="text-purple-600 font-semibold">Pengurusan Perbelanjaan Harian</p>
     </header><!-- Tabs -->
     <div class="max-w-7xl mx-auto mb-6">
-     <div class="glass-card rounded-2xl p-2 inline-flex gap-2 lavender-shadow flex-wrap"><button id="tab-form" onclick="switchTab('form')" class="tab-active px-6 py-3 rounded-xl font-bold text-sm transition-all"> 📝 Input Perbelanjaan </button> <button id="tab-import" onclick="switchTab('import')" class="tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all"> 📥 Import Data </button> <button id="tab-filter" onclick="switchTab('filter')" class="tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all"> �� Carian &amp; Tapisan </button>
+     <div class="glass-card rounded-2xl p-2 inline-flex gap-2 lavender-shadow flex-wrap"><button id="tab-form" onclick="switchTab('form')" class="tab-active px-6 py-3 rounded-xl font-bold text-sm transition-all"> 📝 Input Perbelanjaan </button> <button id="tab-import" onclick="switchTab('import')" class="tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all"> 📥 Import Data </button> <button id="tab-filter" onclick="switchTab('filter')" class="tab-inactive px-6 py-3 rounded-xl font-bold text-sm transition-all"> 🔍 Carian &amp; Tapisan </button>
      </div>
     </div><!-- Form Tab -->
     <div id="form-tab" class="max-w-4xl mx-auto fade-in">
@@ -164,7 +164,7 @@
        <div class="grid grid-cols-1 md:grid-cols-2 gap-5"><!-- Tarikh Belanja -->
         <div><label for="expense-date" class="block text-sm font-bold text-gray-700 mb-2"> Tarikh Belanja <span class="text-red-500">*</span> </label> <input type="date" id="expense-date" required class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white">
         </div><!-- Jenis Bayaran -->
-        <div><label for="payment-type" class="block text-sm font-bold text-gray-700 mb-2"> Jenis Bayaran <span class="text-red-500">*</span> </label> <select id="payment-type" required class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Pilih Jenis Bayaran</option> <option value="CASH">���� CASH</option> <option value="CC MAYBANK">💳 CC MAYBANK</option> <option value="CC HSBC">💳 CC HSBC</option> </select>
+        <div><label for="payment-type" class="block text-sm font-bold text-gray-700 mb-2"> Jenis Bayaran <span class="text-red-500">*</span> </label> <select id="payment-type" required class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-semibold bg-white"> <option value="">Pilih Jenis Bayaran</option> <option value="CASH">💵 CASH</option> <option value="CC MAYBANK">💳 CC MAYBANK</option> <option value="CC HSBC">💳 CC HSBC</option> </select>
         </div>
        </div><!-- Keterangan Perbelanjaan -->
        <div><label for="description" class="block text-sm font-bold text-gray-700 mb-2"> Keterangan Perbelanjaan <span class="text-red-500">*</span> </label> <textarea id="description" rows="3" required placeholder="Contoh: Makan tengahari di restoran" class="w-full px-4 py-3 rounded-xl border-2 border-purple-200 input-field transition-all outline-none text-gray-800 font-medium resize-none"></textarea>
@@ -511,16 +511,6 @@ Contoh:
 
     function updateStatistics(config) {
       const symbol = config.currency_symbol || defaultConfig.currency_symbol;
-      const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
-      const count = filteredExpenses.length;
-      const avg = count > 0 ? total / count : 0;
-      const amounts = filteredExpenses.map(e => e.amount);
-      const max = amounts.length > 0 ? Math.max(...amounts) : 0;
-
-      document.getElementById('stat-total').textContent = formatCurrency(total, symbol);
-      document.getElementById('stat-count').textContent = count;
-      document.getElementById('stat-avg').textContent = formatCurrency(avg, symbol);
-      document.getElementById('stat-max').textContent = formatCurrency(max, symbol);
 
       const codeK = filteredExpenses.filter(e => e.expense_code === 'K');
       const codeZ = filteredExpenses.filter(e => e.expense_code === 'Z');
@@ -639,7 +629,7 @@ Contoh:
     function resetForm() {
       document.getElementById('expense-form').reset();
       document.getElementById('expense-date').valueAsDate = new Date();
-      showToast('��� Form telah direset', 'success');
+      showToast('🔄 Form telah direset', 'success');
     }
 
     window.resetForm = resetForm;
@@ -706,7 +696,8 @@ Contoh:
 
       const config = window.elementSdk?.config || defaultConfig;
 
-      if (hasActiveFilter) {
+      // Always show all sections when there's any data AND any filter is active
+      if (hasActiveFilter && allExpenses.length > 0) {
         document.getElementById('code-breakdown-section').classList.remove('hidden');
         document.getElementById('calculations-section').classList.remove('hidden');
         document.getElementById('data-table-section').classList.remove('hidden');
@@ -757,7 +748,7 @@ Contoh:
       if (result.isOk) {
         showToast('✅ Perbelanjaan berjaya dipadam!', 'success');
       } else {
-        showToast('��� Gagal memadam. Sila cuba lagi.', 'error');
+        showToast('❌ Gagal memadam. Sila cuba lagi.', 'error');
         deleteBtn.disabled = false;
         deleteBtn.innerHTML = originalContent;
       }
@@ -950,6 +941,11 @@ Contoh:
         filteredExpenses = [...allExpenses];
         
         console.log('Processed expenses:', allExpenses.length);
+        
+        // Re-render if we're on the filter tab
+        if (currentTab === 'filter' && isInitialized) {
+          applyFilters();
+        }
       }
     };
 
@@ -1045,5 +1041,5 @@ Contoh:
       }
     })();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bd35a1f7082dce2',t:'MTc2ODI5MTE0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bd38f638752f004',t:'MTc2ODI5MzMyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
